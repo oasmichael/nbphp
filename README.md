@@ -1,4 +1,4 @@
-nbphp 1.0
+nbphp.so-1.0
 =====
 nbphp.so-php日志扩展<br />
 由强哥一手打造<br />
