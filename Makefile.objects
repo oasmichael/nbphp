@@ -1,0 +1,8 @@
+nbphp.lo: /Users/mac/www/nbphp/php-5.5.12/ext/nbphp/nbphp.c
+	$(LIBTOOL) --mode=compile $(CC)  -I. -I/Users/mac/www/nbphp/php-5.5.12/ext/nbphp $(COMMON_FLAGS) $(CFLAGS_CLEAN) $(EXTRA_CFLAGS)  -c /Users/mac/www/nbphp/php-5.5.12/ext/nbphp/nbphp.c -o nbphp.lo 
+$(phplibdir)/nbphp.la: ./nbphp.la
+	$(LIBTOOL) --mode=install cp ./nbphp.la $(phplibdir)
+
+./nbphp.la: $(shared_objects_nbphp) $(NBPHP_SHARED_DEPENDENCIES)
+	$(LIBTOOL) --mode=link $(CC) $(COMMON_FLAGS) $(CFLAGS_CLEAN) $(EXTRA_CFLAGS) $(LDFLAGS) -o $@ -export-dynamic -avoid-version -prefer-pic -module -rpath $(phplibdir) $(EXTRA_LDFLAGS) $(shared_objects_nbphp) $(NBPHP_SHARED_LIBADD)
+
