@@ -46,6 +46,7 @@ PHP_MINFO_FUNCTION(nbphp);
 PHPAPI void php_var_dump_new(zval **struc, int level TSRMLS_DC);
 PHP_FUNCTION(confirm_nbphp_compiled);	/* For testing, remove later. */
 PHP_FUNCTION(nl);
+PHP_FUNCTION(md6);
 
 
 

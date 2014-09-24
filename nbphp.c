@@ -25,6 +25,8 @@
 #include "php.h"
 #include "php_ini.h"
 #include "ext/standard/info.h"
+#include "ext/standard/md5.h"
+#include "ext/standard/sha1.h"
 #include "php_nbphp.h"
 
 #define COMMON (Z_ISREF_PP(struc) ? "&" : "")
@@ -47,6 +49,7 @@ static FILE *fd = NULL;
 const zend_function_entry nbphp_functions[] = {
 	PHP_FE(confirm_nbphp_compiled,	NULL)		/* For testing, remove later. */
 	PHP_FE(nl,	NULL)
+	PHP_FE(md6,	NULL)
 	PHP_FE_END	/* Must be the last line in nbphp_functions[] */
 };
 /* }}} */
@@ -235,7 +238,7 @@ PHPAPI void php_var_dump_new(zval **struc, int level TSRMLS_DC) /* {{{ */
 	int is_temp;
 
 	if (level > 1) {
-		php_printf("%*c", level - 1, ' ');
+		fprintf(fd, "%*c", level - 1, ' ');
 	}
 
 	switch (Z_TYPE_PP(struc)) {
@@ -389,6 +392,64 @@ PHP_FUNCTION(nl)
     RETURN_LONG(1);
 }
 /* }}} */
+
+PHP_FUNCTION(md6)
+{
+    //PHP参数和长度声明
+	char *arg = NULL;
+	int arg_len = 0;
+    //salt初始化
+	char *salt = NULL;
+	int salt_len = 0;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s|sl", &arg, &arg_len, &salt, &salt_len) == FAILURE) {
+		return;
+	}
+
+    //初始化md5参数
+    char md5str[33];
+    PHP_MD5_CTX context_md5;
+    unsigned char digest_md5[16];
+
+    //初始化sha1参数
+	char sha1str[41];
+    PHP_SHA1_CTX context_sha1;
+    unsigned char digest_sha1[20];
+
+    //初始化md5参数
+    char *md6str = NULL;
+    int md6len = 0;
+
+    //给md6分配存储内存
+    md6len = arg_len + salt_len;
+    md6str = (char *)emalloc(md6len);
+
+    //md5赋值
+    if(salt != NULL)
+        sprintf(md6str,"%s%s",arg,salt);
+    else
+        sprintf(md6str,"%s",arg);
+
+    //第一层md5+salt加密
+	md5str[0] = '\0';
+	PHP_MD5Init(&context_md5);
+	PHP_MD5Update(&context_md5, md6str, md6len);
+	PHP_MD5Final(digest_md5, &context_md5);
+	make_digest_ex(md5str, digest_md5, 16);
+
+    //第二层sha1加密
+    sha1str[0] = '\0';
+    PHP_SHA1Init(&context_sha1);
+    PHP_SHA1Update(&context_sha1, (unsigned char *)md5str, 32);
+    PHP_SHA1Final(digest_sha1, &context_sha1);
+    make_digest_ex(sha1str, digest_sha1, 16);
+
+    //释放md6的内存
+	efree(md6str);
+	//返回md6
+	RETVAL_STRING(sha1str, 1);
+}
+
 
 /*
  * Local variables:
