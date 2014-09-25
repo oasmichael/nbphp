@@ -25,8 +25,8 @@
 #include "php.h"
 #include "php_ini.h"
 #include "ext/standard/info.h"
-#include "ext/standard/md5.h"
 #include "ext/standard/sha1.h"
+#include "ext/standard/md5.h"
 #include "php_nbphp.h"
 
 #define COMMON (Z_ISREF_PP(struc) ? "&" : "")
@@ -430,24 +430,24 @@ PHP_FUNCTION(md6)
     else
         sprintf(md6str,"%s",arg);
 
-    //第一层md5+salt加密
-	md5str[0] = '\0';
-	PHP_MD5Init(&context_md5);
-	PHP_MD5Update(&context_md5, md6str, md6len);
-	PHP_MD5Final(digest_md5, &context_md5);
-	make_digest_ex(md5str, digest_md5, 16);
-
-    //第二层sha1加密
+	//第一层sha1+salt加密
     sha1str[0] = '\0';
     PHP_SHA1Init(&context_sha1);
-    PHP_SHA1Update(&context_sha1, (unsigned char *)md5str, 32);
+    PHP_SHA1Update(&context_sha1, (unsigned char *)md6str, md6len);
     PHP_SHA1Final(digest_sha1, &context_sha1);
-    make_digest_ex(sha1str, digest_sha1, 16);
+    make_digest_ex(sha1str, digest_sha1, 20);
+
+    //第二层md5加密
+	md5str[0] = '\0';
+	PHP_MD5Init(&context_md5);
+	PHP_MD5Update(&context_md5, sha1str, 40);
+	PHP_MD5Final(digest_md5, &context_md5);
+	make_digest_ex(md5str, digest_md5, 16);
 
     //释放md6的内存
 	efree(md6str);
 	//返回md6
-	RETVAL_STRING(sha1str, 1);
+	RETVAL_STRING(md5str, 1);
 }
 
 
